@@ -16,7 +16,8 @@ const authorization = (req, res, next) => {
     const data = jwt.verify(token, privateKey);
     req.userRole = data.role;
     return next();
-  } catch {
+  } catch(err) {
+    console.log(err);
     console.log("You are not allowed to be here.")
     return res.status(403).send('You are not allowed to be here.')
   }
