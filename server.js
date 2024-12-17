@@ -3,7 +3,7 @@ const cookieParser = require("cookie-parser");
 let jwt = require('jsonwebtoken');
 const app = express();
 
-let privateKey = process.env.JWT_SECRET_KEY || "SUPER_SECRET_KEY";//TODO: change this for production
+let privateKey = process.env.JWT_SECRET_KEY || "SUPERSECRETKEY";//TODO: change this for production
 
 app.use(cookieParser());
 
