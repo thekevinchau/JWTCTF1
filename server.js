@@ -1,43 +1,37 @@
 const express = require("express");
+require('dotenv').config()
 const cookieParser = require("cookie-parser");
 let jwt = require('jsonwebtoken');
 const app = express();
-
-let privateKey = process.env.JWT_SECRET_KEY || "SUPERSECRETKEY";//TODO: change this for production
-
 app.use(cookieParser());
+let privateKey = process.env.JWT_SECRET_KEY || "supersecretpassword";
 
-const authorization = (req, res, next) => {
+
+const auth = (req, res, next) => {
   const token = req.cookies.token;
   if (!token) {
-    return res.status(403).send('You are not registered with the service.');
+    return res.sendStatus(403);
   }
   try {
     const data = jwt.verify(token, privateKey);
     req.userRole = data.role;
     return next();
-  } catch(err) {
-    console.log(err);
-    console.log("You are not allowed to be here.")
-    return res.status(403).send('You are not allowed to be here.')
+  } catch {
+    console.log("caught");
+    return res.sendStatus(403);
   }
 };
 
 app.get("/", (req, res) => {
-  let token = jwt.sign({"role":"user"}, privateKey);
-  return res.cookie("token", token).status(200).json({ message: "Welcome to the server. Happy hacking!", "source": "https://github.com/thekevinchau/JWTCTF1"});
+  let accessToken = jwt.sign({"role":"member"}, privateKey);
+  console.log(privateKey);
+  console.log(process.env.FLAG);
+  return res.cookie("token", accessToken).status(200).send('Happy hacking! <a href="https://github.com/thekevinchau/JWTCTF1/blob/main/server.js">Code</a>');
 });
 
-app.get("/logout", authorization, (req, res) => {
-  return res
-    .clearCookie("access_token")
-    .status(200)
-    .json({ message: "Logged out" });
-});
-
-app.get("/protected", authorization, (req, res) => {
-  if (req.userRole == "user"){
-    return res.json({role: "user", flag: "Not quite!"});
+app.get("/secretRoute", auth, (req, res) => {
+  if (req.userRole == "member"){
+    return res.json({role: "member", flag: "You do not have access to the flag!"});
   }
   if (req.userRole == "owner"){
     return res.json({role: "owner", flag: process.env.FLAG});
@@ -45,7 +39,6 @@ app.get("/protected", authorization, (req, res) => {
   return res.json({role: req.userRole});
 });
 
-const port = 8080
-app.listen(port, () => {
-    console.log(`Running on port ${port}`)
+app.listen(8080, () => {
+    console.log('Listening on port 8080');
 })
